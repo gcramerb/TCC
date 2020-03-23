@@ -11,16 +11,29 @@ def apply_missing_data(data,missing_type,missing_factor,normalize = True):
     if missing_type == 'b':
         block_range = round(dim * float(missing_factor))
         idx_range_max = dim - 1 - block_range
+        idx_missing_all = []
         for i in range(data.shape[0]):
             idx_missing = random.sample(range(0, idx_range_max), 1)[0]
             data[i, :, idx_missing:idx_missing + block_range, 0:3] = -1
+            idx_missing_all.append(range(idx_missing,idx_missing + block_range))
+
+    if missing_type == 'nb':
+        # usamos valor defaut de 3 partes ausentes
+        # a princípo não está sendo tratado se os blocos faltantes forem sobrepostos.
+        n = 3
+        block_range = round(dim * float(missing_factor))
+        idx_range_max = dim - 1 - block_range
+        for i in range(n):
+            for i in range(data.shape[0]):
+                idx_missing = random.sample(range(0, idx_range_max), 1)[0]
+                data[i, :, idx_missing:idx_missing + block_range, 0:3] = -1
 
 
     elif missing_type == 'u':
         idx_missing = random.sample(range(0, dim), round(dim * float(missing_factor)))
         for i in idx_missing:
             data[:, :, i, 0:3] = -1
-    return data
+    return data,idx_missing_all
 
 def load_data(data_input_file, missing_factor = '0.2',sensor_factor= '1.0.0',missing_type='b',missing = False,normalize = False):
     tmp = np.load(data_input_file, allow_pickle=True)

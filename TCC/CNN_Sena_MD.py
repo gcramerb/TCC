@@ -6,6 +6,7 @@ import sys
 import random
 import custom_model as cm
 import missing_creator as mc
+import imput_creator as ic
 
 
 import keras
@@ -136,7 +137,8 @@ if __name__ == '__main__':
         X_test = []
         X_train = X_2k[train_idx]
         X_test = X_2k[test_idx]
-        X_test = mc.apply_missing_data(X_test,missing_type,missing_factor)
+        X_test,idx_missing_all = mc.apply_missing_data(X_test,missing_type,missing_factor)
+        X_test = ic.imput(X_test,'mean_all', idx_missing)
 
         inputs = []
 
