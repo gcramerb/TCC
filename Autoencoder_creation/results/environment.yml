@@ -1,0 +1,15 @@
+name: harkeraspython36
+channels:
+- conda-forge
+- defaults
+dependencies:
+- python=3.6
+- numpy
+- scipy
+- opencv
+- scikit-learn
+- h5py
+- tensorflow-gpu
+- pandas
+- pip:
+  - keras==2.1.3

@@ -6,7 +6,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 
-def apply_missing_data(data,missing_type,missing_factor,normalize = True):
+def apply_missing_data(data,missing_type,missing_factor,normalize = False):
     dim = data.shape[2]
     if missing_type == 'b':
         block_range = round(dim * float(missing_factor))
@@ -14,7 +14,7 @@ def apply_missing_data(data,missing_type,missing_factor,normalize = True):
         idx_missing_all = []
         for i in range(data.shape[0]):
             idx_missing = random.sample(range(0, idx_range_max), 1)[0]
-            data[i, :, idx_missing:idx_missing + block_range, 0:3] = -1
+            data[i, :, idx_missing:idx_missing + block_range, 0:3] = np.nan
             idx_missing_all.append(range(idx_missing,idx_missing + block_range))
 
     if missing_type == 'nb':
@@ -26,13 +26,13 @@ def apply_missing_data(data,missing_type,missing_factor,normalize = True):
         for i in range(n):
             for i in range(data.shape[0]):
                 idx_missing = random.sample(range(0, idx_range_max), 1)[0]
-                data[i, :, idx_missing:idx_missing + block_range, 0:3] = -1
+                data[i, :, idx_missing:idx_missing + block_range, 0:3] = np.nan
 
 
     elif missing_type == 'u':
         idx_missing = random.sample(range(0, dim), round(dim * float(missing_factor)))
         for i in idx_missing:
-            data[:, :, i, 0:3] = -1
+            data[:, :, i, 0:3] = np.nan
     return data,idx_missing_all
 
 def load_data(data_input_file, missing_factor = '0.2',sensor_factor= '1.0.0',missing_type='b',missing = False,normalize = False):

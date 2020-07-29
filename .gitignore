@@ -1,0 +1,12 @@
+Literature projects/
+images/
+venv/
+/Literature projects/
+/images/
+/venv/
+**/Literature projects/
+**/images/
+**/venv/
+*/Literature projects/
+*/images/
+*/venv/

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import os
 from sklearn.metrics.classification import accuracy_score, recall_score, f1_score
 import scipy.stats as st
@@ -13,9 +14,12 @@ import keras
 from keras import backend as K
 from keras.models import load_model
 
+import missingno as msno
+import seaborn as sns
 
-
-
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     np.random.seed(12227)
@@ -25,9 +29,9 @@ if __name__ == '__main__':
     sensor_factor = '1.0.0' # acc
     missing_type = 'b'
     missing = False
-    missing_factor_list = [0.05,0.1,0.2,0.25,0.35]
+    missing_factor_list = [0.5,0.1,0.2,0.25,0.35]
 
-    impute_type = 'median'
+    impute_type = 'knn'
 
     pool = [(2, 2), (3, 3), (5, 2), (12, 2), (25, 2)]
 
@@ -51,8 +55,17 @@ if __name__ == '__main__':
             X_train = X[train_idx]
             X_test = X[test_idx]
 
+
             X_test,idx_missing_all = mc.apply_missing_data(X_test.copy(),missing_type,miss_fac)
-            X_test = ic.impute(X_test,impute_type, idx_missing_all)
+            print(X_test.shape)
+            df_x = pd.DataFrame(X_test[:,0,:,0])
+            print(df_x.shape)
+            #sns.heatmap(df_x.isnull(), cbar=False)
+            msno.bar(df_x)
+
+            plt.show()
+            X_test = ic.impute(X_test.copy(),impute_type, idx_missing_all)
+            #print(X_test.shape)
 
             inputs = []
 

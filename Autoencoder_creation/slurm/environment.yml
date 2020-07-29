@@ -1,0 +1,14 @@
+name: pix_hell
+channels:
+- conda-forge
+- defaults
+dependencies:
+- python=3.6
+- numpy
+- scipy
+- pillow
+- h5py
+- scikit-image
+- scikit-learn
+- pip:
+  - matplotlib

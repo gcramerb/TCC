@@ -82,8 +82,14 @@ def impute(data_missing, impute_type, idx_missing = None):
             data_missing[i, 0, :,2] = pd.Series(data_missing[i, 0, :, 2]).interpolate()
     if impute_type == 'knn':
         for i in range(data_missing.shape[-1]):
+            print('----')
+            print(i)
+            print(data_missing[:,0,:,i].shape)
             imputer = KNNImputer(n_neighbors=5, weights="uniform")
-            data_missing[:,0,:,i] = imputer.fit_transform(data_missing[:,0,:,i])
+            knn = imputer.fit_transform(data_missing[:,0,:,i])
+            print(knn.shape)
+            print('-----')
+            data_missing[:, 0, :, i] = knn
 
 
     return data_missing

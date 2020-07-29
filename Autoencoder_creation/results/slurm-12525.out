@@ -1,0 +1,29 @@
+Solving environment: ...working... done
+Preparing transaction: ...working... done
+Verifying transaction: ...working... done
+Executing transaction: ...working... done
+Collecting keras==2.1.3 (from -r /mnt/users/guilherme.silva/Autoencoder/slurm/condaenv.7h721n2a.requirements.txt (line 1))
+  Using cached https://files.pythonhosted.org/packages/08/ae/7f94a03cb3f74cdc8a0f5f86d1df5c1dd686acb9a9c2a421c64f8497358e/Keras-2.1.3-py2.py3-none-any.whl
+Requirement already satisfied: scipy>=0.14 in /apps/conda/guilherme.silva/.envs/harkeraspython36/lib/python3.6/site-packages (from keras==2.1.3->-r /mnt/users/guilherme.silva/Autoencoder/slurm/condaenv.7h721n2a.requirements.txt (line 1)) (1.3.0)
+Requirement already satisfied: numpy>=1.9.1 in /apps/conda/guilherme.silva/.envs/harkeraspython36/lib/python3.6/site-packages (from keras==2.1.3->-r /mnt/users/guilherme.silva/Autoencoder/slurm/condaenv.7h721n2a.requirements.txt (line 1)) (1.16.4)
+Collecting pyyaml (from keras==2.1.3->-r /mnt/users/guilherme.silva/Autoencoder/slurm/condaenv.7h721n2a.requirements.txt (line 1))
+  Downloading https://files.pythonhosted.org/packages/9f/2c/9417b5c774792634834e730932745bc09a7d36754ca00acf1ccd1ac2594d/PyYAML-5.1.tar.gz (274kB)
+Requirement already satisfied: six>=1.9.0 in /apps/conda/guilherme.silva/.envs/harkeraspython36/lib/python3.6/site-packages (from keras==2.1.3->-r /mnt/users/guilherme.silva/Autoencoder/slurm/condaenv.7h721n2a.requirements.txt (line 1)) (1.12.0)
+Building wheels for collected packages: pyyaml
+  Building wheel for pyyaml (setup.py): started
+  Building wheel for pyyaml (setup.py): finished with status 'done'
+  Stored in directory: /home/guilherme.silva/.cache/pip/wheels/ad/56/bc/1522f864feb2a358ea6f1a92b4798d69ac783a28e80567a18b
+Successfully built pyyaml
+Installing collected packages: pyyaml, keras
+Successfully installed keras-2.1.3 pyyaml-5.1
+Using TensorFlow backend.
+WARNING:tensorflow:From /apps/conda/guilherme.silva/.envs/harkeraspython36/lib/python3.6/site-packages/tensorflow/python/framework/op_def_library.py:263: colocate_with (from tensorflow.python.framework.ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Colocations handled automatically by placer.
+WARNING:tensorflow:From /apps/conda/guilherme.silva/.envs/harkeraspython36/lib/python3.6/site-packages/tensorflow/python/ops/math_ops.py:3066: to_int32 (from tensorflow.python.ops.math_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.cast instead.
+2019-06-06 13:52:34.058945: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2019-06-06 13:52:34.092371: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2200000000 Hz
+2019-06-06 13:52:34.096436: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x565271c8dd90 executing computations on platform Host. Devices:
+2019-06-06 13:52:34.096492: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): <undefined>, <undefined>
