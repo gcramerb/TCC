@@ -8,29 +8,10 @@ from keras import backend as K
 #if __name__ == '__main__':
 np.random.seed(12227)
 
-data_input_file = '/home/guilherme.silva/datasets/LOSO/USCHAD.npz'
-tmp = np.load(data_input_file, allow_pickle=True)
-X = tmp['X']
-# For sklearn methods X = X[:, 0, :, :]
-y = tmp['y']
-folds = tmp['folds']
-
-X_modas = []
-
-	# ------------------------------------------------------------------------------------
-	# split dataset into modalities
-	# ------------------------------------------------------------------------------------
-dataset_name = data_input_file.split('/')[-1]
-# lendo apenas o Acc - os eixos x,y,z :
-if dataset_name == 'UTD-MHAD2_1s.npz' or dataset_name == 'UTD-MHAD1_1s.npz' or dataset_name == 'USCHAD.npz':
-	X_One = X[:, :, :, 0:3]
-elif dataset_name == 'WHARF.npz' or dataset_name == 'WISDM.npz':
-	X_One = X[:, :, :, 0:3]
-elif dataset_name == 'PAMAP2P.npz':
-	X_One = X[:, :, :, 0:3]
 
 
-n_class = y.shape[1]
+
+
 	# for i in range(0, len(folds)):
 i = 0
 train_idx = folds[i][0]
@@ -41,7 +22,7 @@ X_test = []
 X_train = X_One[train_idx]
 X_test = X_One[test_idx]
 Y_train = [np.argmax(y) for y in y[train_idx]]
-Y_test = [np.argmax(y) for y in y[test_idx]]
+Y_test =
 
 activity1_train = []
 activity1_test = []

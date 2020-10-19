@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-
-
+import sys
+sys.path.insert(0,'C:\\Users\gcram\Documents\GitHub\TCC\TCC\missing generator\\')
+import missing_creator as mc
 
 
 def target_names(dataset_name):
@@ -147,14 +148,12 @@ def target_names(dataset_name):
 	return class_names
 
 def get_data(dataset_name):
-    import missing_creator as mc
+
     data_input_file = 'C:\\Users\gcram\Documents\Smart Sense\Datasets\\' + dataset_name + '.npz'
     label_names = target_names(dataset_name)
     batch = 128
-    sensor_factor = '1.0.0'
-    missing_factor = '0.2'
-    missing_type = 'b'
-    X, y, folds = mc.load_data(data_input_file=data_input_file)
+    sensor_factor = '1.1.0'
+    X, y, folds = mc.load_data(data_input_file=data_input_file,sensor_factor = sensor_factor)
     return X,y,folds,label_names
 
 
