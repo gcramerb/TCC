@@ -19,6 +19,10 @@ session = InteractiveSession(config=config)
 
 K.set_image_data_format('channels_first')
 
+from utils import dataHandler
+
+"AutoEncoder baseado no modelo Sena2018_HAR"
+
 # batch normalization
 class Conv1DAutoEncoder():
 
@@ -26,21 +30,6 @@ class Conv1DAutoEncoder():
         np.random.seed(12227)
         self.batch_size = 128
         self.n_ep = 200
-        self.data_x = None
-        self.data_y = None
-        self.folds = None
-        self.n_class = None
-        self.model = None
-
-    def set_data(self, dataset_name='MHEALTH'):
-        import sys
-        sys.path.insert(0, 'C:\\Users\gcram\Documents\GitHub\TCC\TCC\\')
-        from utils import get_data, plot_sensor
-
-        self.data_x, Y, self.folds, self.label_names = get_data(dataset_name)
-        self.data_y = np.array([np.argmax(y) for y in Y])
-
-        self.n_class = Y.shape[1]
 
     def _stream_decode(self, encoded, n_filters, kernel):
 
@@ -112,38 +101,18 @@ class Conv1DAutoEncoder():
         opt = keras.optimizers.Adam(learning_rate=0.005)
         self.model.compile(loss='mse',  optimizer=opt, metrics=['mse'])
 
-    def train(self):
+    def train(self,trainX,trainY):
 
-        # for i in range(0, len(folds)):
-        i = 0
-        train_idx = self.folds[i][0]
-        test_idx = self.folds[i][1]
-        X_train = None
-        X_test = None
-
-        X_train = self.data_x[train_idx]
-        X_test = self.data_x[test_idx]
-        Y_train =self.data_y[train_idx]
-        Y_test = self.data_y[test_idx]
         inputs = []
-        inputs.append(keras.layers.Input((X_train.shape[1], X_train.shape[2], X_train.shape[3])))
+        inputs.append(keras.layers.Input((trainX.shape[1], trainX.shape[2],trainX.shape[3])))
         self.build_model(inputs)
 
-        self.model.fit(X_train, X_train, self.batch_size, self.n_ep, verbose=1)
+        self.model.fit(trainX, trainX, self.batch_size, self.n_ep, verbose=1)
 
 
-    def predict(self):
-        train_idx = self.folds[i][0]
-        test_idx = self.folds[i][1]
-        X_train = []
-        X_test = []
+    def predict(self,testX):
 
-        X_train = self.data_x[train_idx]
-        X_test = self.dat_x[test_idx]
-        Y_train =self.data_y[train_idx]
-        Y_test = self.data_y[test_idx]
-
-        x_hat = self.model.predict(X_test)
+        x_hat = self.model.predict(testX)
 
         return x_hat
 
@@ -161,3 +130,7 @@ class Conv1DAutoEncoder():
             plt.show()
 
 
+
+AE = Conv1DAutoEncoder()
+DH = dataHandler()
+a= 1
