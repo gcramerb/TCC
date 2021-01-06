@@ -3,6 +3,7 @@ import numpy as np
 import random
 from scipy import fftpack
 from sklearn.preprocessing import MinMaxScaler
+from copy import deepcopy
 
 from numpy.random import seed
 from numpy.random import rand
@@ -15,15 +16,18 @@ import matplotlib.pyplot as plt
 class dataHandler():
 	def __init__(self):
 		self.dataX = None
+		self.dataXtest = None
 		self.dataXmissing = None
+		self.dataXmissingTest = None
 		self.dataXreconstructed = None
-		self.dataY = None
+		self.dataXreconstructedTest = None
+
 		self.folds = None
 		self.labelsNames = None
 		self.nClass = None
 
-	def load_data(self,dataset_name, sensor_factor='1.0.0', normalize=False):
-		data_input_file = 'C:\\Users\gcram\Documents\Smart Sense\Datasets\LOSO\\' + dataset_name + '.npz'
+	def load_data(self,dataset_name, sensor_factor='1.0.0'):
+		data_input_file = 'C:\\Users\gcram\Documents\Smart Sense\Datasets\LOSO\\' + dataset_name
 		self.target_names(dataset = dataset_name)
 
 		tmp = np.load(data_input_file, allow_pickle=True)
@@ -52,7 +56,7 @@ class dataHandler():
 			s = sensor_factor.split('.')
 			for i in range(len(s)):
 				if s[i] == '1':
-					temp.append(data[i])
+					temp.append(np.squeeze(data[i]))
 
 		if dataset_name == 'PAMAP2P.npz':
 			data = []
@@ -74,7 +78,7 @@ class dataHandler():
 
 			for i in range(len(s)):
 				if s[i] == '1':
-					temp.append(data[i])
+					temp.append(np.squeeze(data[i]))
 
 		if dataset_name == 'UTD-MHAD1_1s.npz':
 			data = []
@@ -84,7 +88,7 @@ class dataHandler():
 			s = sensor_factor.split('.')
 			for i in range(len(s)):
 				if s[i] == '1':
-					temp.append(data[i])
+					temp.append(np.squeeze(data[i]))
 
 		if dataset_name == 'UTD-MHAD2_1s.npz':
 			data = []
@@ -94,7 +98,7 @@ class dataHandler():
 			s = sensor_factor.split('.')
 			for i in range(len(s)):
 				if s[i] == '1':
-					temp.append(data[i])
+					temp.append(np.squeeze(data[i]))
 
 		if dataset_name == 'WHARF.npz':
 			data = []
@@ -103,7 +107,7 @@ class dataHandler():
 			s = sensor_factor.split('.')
 			for i in range(len(s)):
 				if s[i] == '1':
-					temp.append(data[i])
+					temp.append(np.squeeze(data[i]))
 
 		if dataset_name == 'USCHAD.npz':
 			data = []
@@ -113,7 +117,7 @@ class dataHandler():
 			s = sensor_factor.split('.')
 			for i in range(len(s)):
 				if s[i] == '1':
-					temp.append(data[i])
+					temp.append(np.squeeze(data[i]))
 
 		if dataset_name == 'WISDM.npz':
 			data = []
@@ -122,23 +126,164 @@ class dataHandler():
 			s = sensor_factor.split('.')
 			for i in range(len(s)):
 				if s[i] == '1':
-					temp.append(data[i])
+					temp.append(np.squeeze(data[i]))
 
 		Xsensor = np.concatenate(temp, axis=-1)
+		self.dataX = temp
 
-		if normalize:
-			for ii in range(Xsensor.shape[0]):
-				for jj in range(Xsensor.shape[1]):
-					scaler = MinMaxScaler()
-					scaler.fit(Xsensor[ii, jj, :, 0:3])
-					Xsensor[ii, jj, :, 0:3] = (scaler.transform(Xsensor[ii, jj, :, 0:3])) * 256
+	def splitTrainTest(self,ratio = .7):
+		samples = len(self.dataX[0])
+		np.random.seed(0)
+		max_ = int(samples*ratio)
+		idx = np.random.permutation(samples)
+		idx_train = idx[0:max_]
+		idx_test = idx[max_:]
+		if self.dataX:
+			for sensor in self.dataX:
+				self.dataXtest.append(sensor[idx_test])
+				sensor = sensor[idx_train]
+
+		if self.dataXmissing:
+			for sensor in self.dataXmissing:
+				self.dataXmissingTest.append(sensor[idx_test])
+				sensor = sensor[idx_train]
+		if self.dataXreconstructed:
+			for sensor in self.dataXreconstructed:
+				self.dataXreconstructedTest.append(sensor[idx_test])
+				sensor = sensor[idx_train]
 
 
 
-		self.dataX = Xsensor
+	def apply_missing(self,missing_factor,missing_type = 'b',missing_sensor = '1.0.0'):
+
+		if self.dataX is None:
+			print('Dados inexistente ')
+			return
+		self.dataXmissing = deepcopy(self.dataX)
+		nSamples = self.dataX[0].shape[0]
+		dim = self.dataX[0].shape[1]
+
+		s = missing_sensor.split('.')
+		for i in range(len(s)):
+			if s[i] == '1':
+				sensor = self.dataXmissing[i]
+				if missing_type == 'b':
+					block_range = round(dim * float(missing_factor))
+					idx_range_max = dim - 1 - block_range
+					idx_missing_all = []
+					for i in range(nSamples):
+						idx_missing = random.sample(range(0, idx_range_max), 1)[0]
+						sensor[i, idx_missing:idx_missing + block_range, 0:3] = np.nan
+
+				if missing_type == 'nb':
+					# usamos valor defaut de 3 partes ausentes
+					# a princípo não está sendo tratado se os blocos faltantes forem sobrepostos.
+					n = 3
+					block_range = round(dim * float(missing_factor))
+					idx_range_max = dim - 1 - block_range
+					for i in range(n):
+						for i in range(nSamples):
+							idx_missing = random.sample(range(0, idx_range_max), 1)[0]
+							sensor[i, idx_missing:idx_missing + block_range, 0:3] = np.nan
+
+
+				elif missing_type == 'u':
+					idx_missing = random.sample(range(0, dim), round(dim * float(missing_factor)))
+					for i in idx_missing:
+						sensor[:, i, 0:3] = np.nan
+
+
+	def impute(self,impute_type):
+		self.dataXreconstructed = deepcopy(self.dataXmissing)
+		nSamples = self.dataX[0].shape[0]
+		dim = self.dataX[0].shape[1]
+		if  impute_type == 'mean':
+			for i in range(nSamples):
+				for sensor in self.dataXreconstructed:
+					idx_missing = np.argwhere(np.isnan(sensor[i,:,0])) #All axis has the same missing points
+					idx_missing = idx_missing.flatten()
+					idx_notM = list(set(range(dim)) - set(idx_missing))
+					defautMeanX = np.mean(sensor[i, idx_notM, 0])
+					defautMeanY = np.mean(sensor[i, idx_notM, 1])
+					defautMeanZ = np.mean(sensor[i, idx_notM, 2])
+					sensor[i,idx_missing,0:3] = [defautMeanX,defautMeanY,defautMeanZ]
+					#defautMeanX = np.mean(data_missing[i, idx_notM])
+					#data_missing[i, idx_missing] = defautMeanX
+
+		if impute_type == 'median':
+			for i in range(nSamples):
+				for sensor in self.dataXreconstructed:
+					idx_missing = np.argwhere(np.isnan(sensor[i,:,0]))
+					idx_missing = idx_missing.flatten()
+					idx_notM = list(set(range(dim))- set(idx_missing))
+					defautMedianX = np.median(sensor[i,idx_notM,0])
+					defautMedianY = np.median(sensor[i,idx_notM,1])
+					defautMedianZ = np.median(sensor[i,idx_notM,2])
+					sensor[i,idx_missing,0:3] = [defautMedianX,defautMedianY,defautMedianZ]
+
+		if impute_type == 'last_value':
+			for i in range(nSamples):
+				for sensor in self.dataXreconstructed:
+					idx_missing = np.argwhere(np.isnan(sensor[i,:,0]))
+					idx_missing = idx_missing.flatten()
+
+					idx_notM = list(set(range(dim)) - set(idx_missing))
+					lastVx = sensor[i,idx_missing[i][0]-1,0]
+					lastVy = sensor[i,idx_missing[i][0]-1,1]
+					lastVz = sensor[i,idx_missing[i][0]-1,2]
+					sensor[i, idx_missing, 0:3] = [lastVx, lastVy, lastVz]
+		if impute_type == 'aleatory':
+			seed(22277)
+			for i in range(nSamples):
+				for sensor in self.dataXreconstructed:
+					idx_missing = np.argwhere(np.isnan(sensor[i,:,0]))
+					idx_missing = idx_missing.flatten()
+					n = len(idx_missing)
+					minX = np.nanmin(sensor[i,:,0])
+					minY = np.nanmin(sensor[i,:,1])
+					minZ = np.nanmin(sensor[i,:,2])
+
+					maxX = np.nanmax(sensor[i,:,0])
+					maxY= np.nanmax(sensor[i,:,1])
+					maxZ =np.nanmax(sensor[i,:,2])
+					x = minX + (rand(n) * (maxX - minX))
+					y = minY + (rand(n) * (maxY - minY))
+					z = minZ + (rand(n) * (maxZ - minZ))
+					sensor[i, idx_missing, 0:3] = [x,y,z]
 
 
 
+		if impute_type == 'interpolation':
+			for i in range(nSamples):
+				for sensor in self.dataXreconstructed:
+					sensor[i,:,0 ] = pd.Series(sensor[i,:,0 ]).interpolate()
+					sensor[i,:, 1] = pd.Series(sensor[i, :, 1]).interpolate()
+					senso[i,:,2] = pd.Series(sensor[i, :, 2]).interpolate()
+
+		if impute_type == 'default':
+			defalt_values = [[0, 0, -9.81],[0, 0,0],[0, 0, 0]]
+			for i in range(nSamples):
+				j = 0
+				for sensor in self.dataXreconstructed:
+					idx_missing = np.argwhere(np.isnan(sensor[i,:,0]))
+					idx_missing = idx_missing.flatten()
+					sensor[i, idx_missing, 0:3] = defalt_vales[j]
+					j = j+1
+					#self.dataXmissing[i, idx_missing] = 0
+
+		if impute_type == 'frequency':
+			for i in range(nSamples):
+				for sensor in self.dataXreconstructed:
+					idx_missing = np.argwhere(np.isnan(sensor[i,:,0]))
+					idx_missing = idx_missing.flatten()
+					idx_notM = list(set(range(dim)) - set(idx_missing))
+					xfreq =  fftpack.rfft(sensor[i, idx_notM, 0])
+					yfreq =fftpack.rfft(sensor[i, idx_notM, 1])
+					zfreq =fftpack.rfft(sensor[i, idx_notM, 2])
+
+					sensor[i,idx_missing,0] = fftpack.irfft(xfreq, n=len(idx_missing))
+					sensor[i, idx_missing, 1] = fftpack.irfft(yfreq, n=len(idx_missing))
+					sensor[i, idx_missing, 2] = fftpack.irfft(zfreq, n=len(idx_missing))
 	def target_names(self,dataset):
 		class_names = ""
 		if dataset == 'MHEALTH':
@@ -278,135 +423,6 @@ class dataHandler():
 			class_names = actNameWISDM
 		self.labelNames = class_names
 
-	def apply_missing(self,missing_type = 'b', missing_factor):
-
-		if self.dataX is None:
-			print('Dados inexistente ')
-			return
-		self.dataXmissing = self.dataX.copy()
-		dim = self.dataXmissing.shape[1]
-		nSamples = self.dataXmissing.shape[0]
-
-		if missing_type == 'b':
-			block_range = round(dim * float(missing_factor))
-			idx_range_max = dim - 1 - block_range
-			idx_missing_all = []
-			for i in range(nSamples):
-				idx_missing = random.sample(range(0, idx_range_max), 1)[0]
-				self.dataXmissing[i, idx_missing:idx_missing + block_range, 0:3] = np.nan
-
-		if missing_type == 'nb':
-			# usamos valor defaut de 3 partes ausentes
-			# a princípo não está sendo tratado se os blocos faltantes forem sobrepostos.
-			n = 3
-			block_range = round(dim * float(missing_factor))
-			idx_range_max = dim - 1 - block_range
-			for i in range(n):
-				for i in range(nSamples):
-					idx_missing = random.sample(range(0, idx_range_max), 1)[0]
-					self.dataXmissing[i, idx_missing:idx_missing + block_range, 0:3] = np.nan
-
-
-		elif missing_type == 'u':
-			idx_missing = random.sample(range(0, dim), round(dim * float(missing_factor)))
-			for i in idx_missing:
-				self.dataXmissing[:, i, 0:3] = np.nan
-
-
-	def impute(self,impute_type):
-		self.dataXreconstructed = self.dataXmissing.copy()
-		nSamples = self.dataXmissing.shape[0]
-
-		dim = self.dataXmissing.shape[1]
-		if  impute_type == 'mean':
-			for i in range(nSamples):
-				idx_missing = np.argwhere(np.isnan(self.dataXmissing[i]))
-				idx_missing = idx_missing.flatten()
-				idx_notM = list(set(range(dim)) - set(idx_missing))
-				defautMeanX = np.mean(self.dataXmissing[i, idx_notM, 0])
-				defautMeanY = np.mean(self.dataXmissing[i, idx_notM, 1])
-				defautMeanZ = np.mean(self.dataXmissing[i, idx_notM, 2])
-				self.dataXreconstructed[i,idx_missing,0:3] = [defautMeanX,defautMeanY,defautMeanZ]
-				#defautMeanX = np.mean(data_missing[i, idx_notM])
-				#data_missing[i, idx_missing] = defautMeanX
-
-		if  impute_type == 'mode':
-			for i in range(self.dataXmissing.shape[0]):
-				idx_missing = np.argwhere(np.isnan(self.dataXmissing[i]))
-				idx_missing = idx_missing.flatten()
-				idx_notM = list(set(range(dim))- set(idx_missing))
-				defautModeX = statistics.mode(self.dataXmissing[i,idx_notM,0])
-				defautModeY = statistics.mode(self.dataXmissing[i,idx_notM,1])
-				defautModeZ = statistics.mode(self.dataXmissing[i,idx_notM,2])
-				self.dataXreconstructed[i,idx_missing,0:3] = [defautModeX,defautModeY,defautModeZ]
-
-
-		if impute_type == 'median':
-			for i in range(nSamples):
-				idx_missing = np.argwhere(np.isnan(self.dataXmissing[i]))
-				idx_missing = idx_missing.flatten()
-				idx_notM = list(set(range(dim))- set(idx_missing))
-				defautMedianX = np.median(data_missing[i,idx_notM,0])
-				defautMedianY = np.median(data_missing[i,idx_notM,1])
-				defautMedianZ = np.median(data_missing[i,idx_notM,2])
-				self.dataXreconstructed[i,idx_missing,0:3] = [defautMedianX,defautMedianY,defautMedianZ]
-
-		if impute_type == 'last_value':
-			for i in range(nSamples):
-				idx_missing = np.argwhere(np.isnan(self.dataXmissing[i]))
-				idx_missing = idx_missing.flatten()
-
-				idx_notM = list(set(range(dim)) - set(idx_missing))
-				lastVx = data_missing[i,idx_missing[i][0]-1,0]
-				lastVy = data_missing[i,idx_missing[i][0]-1,1]
-				lastVz = data_missing[i,idx_missing[i][0]-1,2]
-				self.dataXreconstructed[i, idx_missing, 0:3] = [lastVx, lastVy, lastVz]
-		if impute_type == 'aleatory':
-			seed(22277)
-			for i in range(nSamples):
-				idx_missing = np.argwhere(np.isnan(self.dataXmissing[i]))
-				idx_missing = idx_missing.flatten()
-				n = len(idx_missing)
-				minX = np.nanmin(self.dataXmissing[i,:,0])
-				minY = np.nanmin(self.dataXmissing[i,:,1])
-				minZ = np.nanmin(self.dataXmissing[i,:,2])
-
-				maxX = np.nanmax(self.dataXmissing[i,:,0])
-				maxY= np.nanmax(self.dataXmissing[i,:,1])
-				maxZ =np.nanmax(self.dataXmissing[i,:,2])
-				x = minX + (rand(n) * (maxX - minX))
-				y = minY + (rand(n) * (maxY - minY))
-				z = minZ + (rand(n) * (maxZ - minZ))
-				self.dataXreconstructed[i, idx_missing, 0:3] = [x,y,z]
-
-
-
-		if impute_type == 'interpolation':
-			for i in range(nSamples):
-				self.dataXreconstructed[i,:,0 ] = pd.Series(self.dataXmissing[i,:,0 ]).interpolate()
-				self.dataXreconstructed[i,:, 1] = pd.Series(self.dataXmissing[i, :, 1]).interpolate()
-				self.dataXreconstructed[i,:,2] = pd.Series(self.dataXmissing[i, :, 2]).interpolate()
-
-		if impute_type == 'default':
-			for i in range(nSamples):
-				idx_missing = np.argwhere(np.isnan(self.dataXmissing[i]))
-				idx_missing = idx_missing.flatten()
-				self.dataXreconstructed[i, idx_missing, 0:3] = [0, 0, -9.81]
-				#self.dataXmissing[i, idx_missing] = 0
-
-		if impute_type == 'frequency':
-			for i in range(nSamples):
-				idx_missing = np.argwhere(np.isnan(self.dataXmissing[i,:,0]))
-				idx_missing = idx_missing.flatten()
-				idx_notM = list(set(range(dim)) - set(idx_missing))
-				xfreq =  fftpack.rfft(self.dataXmissing[i, idx_notM, 0])
-				yfreq =fftpack.rfft(self.dataXmissing[i, idx_notM, 1])
-				zfreq =fftpack.rfft(self.dataXmissing[i, idx_notM, 2])
-
-				self.dataXreconstructed[i,idx_missing,0] = fftpack.irfft(xfreq, n=len(idx_missing))
-				self.dataXreconstructed[i, idx_missing, 1] = fftpack.irfft(yfreq, n=len(idx_missing))
-				self.dataXreconstructed[i, idx_missing, 2] = fftpack.irfft(zfreq, n=len(idx_missing))
-
 
 
 
@@ -449,4 +465,3 @@ class Plots:
 
 		plt.savefig("C:\\Users\gcram\Documents\Github\TCC\images\%s_%s.png" % (label, file_name))
 		plt.close()
-

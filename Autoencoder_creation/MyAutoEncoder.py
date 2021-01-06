@@ -19,7 +19,11 @@ session = InteractiveSession(config=config)
 
 K.set_image_data_format('channels_first')
 
+import sys
+sys.path.insert(0, "../")
+
 from utils import dataHandler
+
 
 "AutoEncoder baseado no modelo Sena2018_HAR"
 
@@ -133,4 +137,6 @@ class Conv1DAutoEncoder():
 
 AE = Conv1DAutoEncoder()
 DH = dataHandler()
+DH.load_data(dataset_name = 'UTD-MHAD1_1s.npz')
+
 a= 1
