@@ -3,6 +3,7 @@ import pandas as pd
 from tensorflow.keras.layers import Input,Concatenate, Dense, Convolution2D, MaxPooling2D, UpSampling2D, Flatten, Reshape, Dropout, Conv2D,concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
+from tensorflow.keras import optimizers
 from sklearn.metrics import classification_report, mean_squared_error
 from scipy.stats import randint as sp_randint
 import numpy as np
@@ -22,19 +23,29 @@ session = InteractiveSession(config=config)
 import sys
 sys.path.insert(0, "../")
 
-from utils import dataHandler
+from dataHandler import dataHandler
 K.set_image_data_format('channels_first')
 
 
 class MyAutoEncoder:
 
-    def __init__(self):
+    def __init__(self,hyp = None):
         np.random.seed(12227)
-        self.conv_window = (5, 5)
-        self.pooling_window = (2, 1)
-        self.n_filters = (32, 16, 8)
-        self.n_epoches = 140
-        self.batch_size = 8
+        if hyp:
+
+            self.conv_window = hyp['conv_window']
+            self.pooling_window = hyp['pooling_window']
+            self.n_filters = hyp['n_filters']
+            self.n_epoches =  hyp['n_epoches']
+            self.batch_size =  hyp['batch_size']
+            self.lr = hyp['lr']
+        else:
+            self.conv_window = (5, 3)
+            self.pooling_window = (2, 1)
+            self.n_filters = (32, 16, 8)
+            self.n_epoches = 250
+            self.batch_size = 8
+            self.lr = 0.01
 
     def build_encoder(self,input):
         #inp = np.expand_dims(input, axis=1)
@@ -106,38 +117,24 @@ class MyAutoEncoder:
         print("shape after decode to input", K.int_shape(decoded))
 
         autoencoder = Model(inputs_keras, decoded)
+        opt = optimizers.Adam(learning_rate=self.lr)
         autoencoder.compile(optimizer='adam', loss='mean_squared_error')
+        autoencoder.compile(optimizer=opt, loss='mean_squared_error')
         #encoder_model = Model(self.autoencoder.input, self.autoencoder.layers[6].output)
         self.autoencoder = autoencoder
 
     def fit(self,dataX,dataY):
         self.history = self.autoencoder.fit(dataX,dataY, epochs=self.n_epoches, batch_size=self.batch_size, shuffle=True)
         a = 1
-
-DH = dataHandler()
-DH.load_data(dataset_name = 'UTD-MHAD1_1s.npz',sensor_factor = '1.1')
-DH.apply_missing(missing_factor = '0.4',missing_sensor = '1.0')
+    def predict(self,xtest= None):
+        return self.autoencoder.predict(xtest)
 
 
 
-X_train = DH.dataX
-X_test = DH.dataX
-inputs_aux = []
-for sensor in X_train:
-    sensor = np.expand_dims(sensor,axis = 1)
-    inputs_aux.append(sensor)
-
-dim = inputs_aux[0].shape
-inputs_keras = []
 
 
-AE = MyAutoEncoder()
-AE.buildModel(n_sensors = len(X_train),dim = dim)
-AE.fit(inputs_aux,inputs_aux[0])
 
 
-x_hat = autoencoder.predict(inputs_aux)
-print(h_hat)
 
 
 
